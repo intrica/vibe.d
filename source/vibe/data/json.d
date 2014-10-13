@@ -2004,6 +2004,11 @@ void writeJsonString(R, bool pretty = false)(ref R dst, in Json json, size_t lev
 			bool first = true;
 			foreach( string k, ref const Json e; json ){
 				if( e.type == Json.Type.undefined ) continue;
+				if (e.type == Json.Type.float_) {
+					// Do not serialize undefined double values (nan)
+					auto v = e.get!float;
+					if (v != v) continue;
+				}
 				if( !first ) dst.put(',');
 				first = false;
 				static if (pretty) {
