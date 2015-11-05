@@ -1843,7 +1843,7 @@ void writeJsonString(R, bool pretty = false)(ref R dst, in Json json, size_t lev
 //	if( isOutputRange!R && is(ElementEncodingType!R == char) )
 {
 	final switch( json.type ){
-		case Json.Type.undefined: dst.put("undefined"); break;
+		case Json.Type.undefined: dst.put("null"); break;
 		case Json.Type.null_: dst.put("null"); break;
 		case Json.Type.bool_: dst.put(cast(bool)json ? "true" : "false"); break;
 		case Json.Type.int_: formattedWrite(dst, "%d", json.get!long); break;
@@ -1851,7 +1851,7 @@ void writeJsonString(R, bool pretty = false)(ref R dst, in Json json, size_t lev
 		case Json.Type.float_:
 			auto d = json.get!double;
 			if (d != d)
-				dst.put("undefined"); // JSON has no NaN value so set null
+				dst.put("null"); // JSON has no NaN value so set null
 			else
 				formattedWrite(dst, "%.16g", json.get!double);
 			break;
@@ -1886,6 +1886,11 @@ void writeJsonString(R, bool pretty = false)(ref R dst, in Json json, size_t lev
 			bool first = true;
 			foreach( string k, ref const Json e; json ){
 				if( e.type == Json.Type.undefined ) continue;
+				if (e.type == Json.Type.float_) {
+					// Do not serialize undefined double values (nan)
+					auto v = e.get!float;
+					if (v != v) continue;
+				}
 				if( !first ) dst.put(',');
 				first = false;
 				static if (pretty) {
@@ -1966,7 +1971,7 @@ unittest {
 unittest {
 	auto j = Json(double.init);
 
-	assert(j.toString == "undefined"); // A double nan should serialize to undefined
+	assert(j.toString == "null"); // A double nan should serialize to null
 	j = 17.04f;
 	assert(j.toString == "17.04");	// A proper double should serialize correctly
 
