@@ -170,6 +170,8 @@ struct MongoCollection {
 	/// ditto
 	void remove()() { remove(Bson.emptyObject); }
 
+
+	alias findAndModifyExt = findAndModify;
 	/**
 	  Combines a modify and find operation to a single atomic operation.
 
